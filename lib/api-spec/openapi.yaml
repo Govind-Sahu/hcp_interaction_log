@@ -3,13 +3,19 @@ info:
   # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: AI-First CRM HCP Module API
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: hcps
+    description: Healthcare Professional operations
+  - name: interactions
+    description: HCP Interaction operations
+  - name: ai
+    description: AI Agent operations
 paths:
   /healthz:
     get:
@@ -24,6 +30,278 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /hcps:
+    get:
+      operationId: listHcps
+      tags: [hcps]
+      summary: List HCPs
+      description: Returns paginated list of healthcare professionals
+      parameters:
+        - in: query
+          name: search
+          schema:
+            type: string
+          description: Search by name, specialty, or institution
+        - in: query
+          name: specialty
+          schema:
+            type: string
+          description: Filter by specialty
+        - in: query
+          name: territory
+          schema:
+            type: string
+          description: Filter by territory
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            default: 20
+        - in: query
+          name: offset
+          schema:
+            type: integer
+            default: 0
+      responses:
+        "200":
+          description: List of HCPs
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HcpListResponse"
+    post:
+      operationId: createHcp
+      tags: [hcps]
+      summary: Create HCP
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/HcpCreateInput"
+      responses:
+        "201":
+          description: HCP created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Hcp"
+
+  /hcps/{id}:
+    get:
+      operationId: getHcp
+      tags: [hcps]
+      summary: Get HCP by ID
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: HCP detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Hcp"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /interactions:
+    get:
+      operationId: listInteractions
+      tags: [interactions]
+      summary: List all interactions
+      parameters:
+        - in: query
+          name: hcpId
+          schema:
+            type: integer
+          description: Filter by HCP ID
+        - in: query
+          name: type
+          schema:
+            type: string
+          description: Filter by interaction type
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            default: 20
+        - in: query
+          name: offset
+          schema:
+            type: integer
+            default: 0
+      responses:
+        "200":
+          description: List of interactions
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InteractionListResponse"
+    post:
+      operationId: createInteraction
+      tags: [interactions]
+      summary: Log a new interaction
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/InteractionCreateInput"
+      responses:
+        "201":
+          description: Interaction created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Interaction"
+
+  /interactions/{id}:
+    get:
+      operationId: getInteraction
+      tags: [interactions]
+      summary: Get interaction by ID
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Interaction detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Interaction"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    put:
+      operationId: updateInteraction
+      tags: [interactions]
+      summary: Update (edit) an interaction
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/InteractionUpdateInput"
+      responses:
+        "200":
+          description: Interaction updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Interaction"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    delete:
+      operationId: deleteInteraction
+      tags: [interactions]
+      summary: Delete an interaction
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  /dashboard/summary:
+    get:
+      operationId: getDashboardSummary
+      tags: [interactions]
+      summary: Dashboard statistics summary
+      responses:
+        "200":
+          description: Dashboard summary data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DashboardSummary"
+
+  /hcps/{id}/interactions:
+    get:
+      operationId: getHcpInteractions
+      tags: [hcps]
+      summary: Get all interactions for an HCP
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: HCP interaction history
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InteractionListResponse"
+
+  /ai/agent:
+    post:
+      operationId: runAiAgent
+      tags: [ai]
+      summary: Run AI agent with a message
+      description: Sends a message to the LangGraph AI agent which uses Groq LLM with 5 tools
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AgentRequest"
+      responses:
+        "200":
+          description: Agent response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AgentResponse"
+
+  /ai/agent/chat:
+    post:
+      operationId: runAiChat
+      tags: [ai]
+      summary: Chat with AI for conversational interaction logging
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ChatRequest"
+      responses:
+        "200":
+          description: Chat response with extracted interaction data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ChatResponse"
+
 components:
   schemas:
     HealthStatus:
@@ -34,3 +312,396 @@ components:
       required:
         - status
 
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+        message:
+          type: string
+      required:
+        - error
+        - message
+
+    Hcp:
+      type: object
+      properties:
+        id:
+          type: integer
+        firstName:
+          type: string
+        lastName:
+          type: string
+        specialty:
+          type: string
+        institution:
+          type: string
+        territory:
+          type: string
+        email:
+          type: string
+          nullable: true
+        phone:
+          type: string
+          nullable: true
+        npi:
+          type: string
+          nullable: true
+        tier:
+          type: string
+          enum: [A, B, C]
+        lastInteractionDate:
+          type: string
+          format: date-time
+          nullable: true
+        totalInteractions:
+          type: integer
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - firstName
+        - lastName
+        - specialty
+        - institution
+        - territory
+        - tier
+        - totalInteractions
+        - createdAt
+        - updatedAt
+
+    HcpCreateInput:
+      type: object
+      properties:
+        firstName:
+          type: string
+        lastName:
+          type: string
+        specialty:
+          type: string
+        institution:
+          type: string
+        territory:
+          type: string
+        email:
+          type: string
+          nullable: true
+        phone:
+          type: string
+          nullable: true
+        npi:
+          type: string
+          nullable: true
+        tier:
+          type: string
+          enum: [A, B, C]
+          default: B
+      required:
+        - firstName
+        - lastName
+        - specialty
+        - institution
+        - territory
+
+    HcpListResponse:
+      type: object
+      properties:
+        hcps:
+          type: array
+          items:
+            $ref: "#/components/schemas/Hcp"
+        total:
+          type: integer
+        limit:
+          type: integer
+        offset:
+          type: integer
+      required:
+        - hcps
+        - total
+        - limit
+        - offset
+
+    Interaction:
+      type: object
+      properties:
+        id:
+          type: integer
+        hcpId:
+          type: integer
+        hcpName:
+          type: string
+        type:
+          type: string
+          enum: [visit, call, email, virtual_meeting, conference, other]
+        date:
+          type: string
+          format: date-time
+        duration:
+          type: integer
+          nullable: true
+          description: Duration in minutes
+        notes:
+          type: string
+        aiSummary:
+          type: string
+          nullable: true
+        sentiment:
+          type: string
+          enum: [positive, neutral, negative]
+          nullable: true
+        productsDiscussed:
+          type: array
+          items:
+            type: string
+        followUpRequired:
+          type: boolean
+        followUpDate:
+          type: string
+          format: date-time
+          nullable: true
+        followUpNotes:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - hcpId
+        - hcpName
+        - type
+        - date
+        - notes
+        - productsDiscussed
+        - followUpRequired
+        - createdAt
+        - updatedAt
+
+    InteractionCreateInput:
+      type: object
+      properties:
+        hcpId:
+          type: integer
+        type:
+          type: string
+          enum: [visit, call, email, virtual_meeting, conference, other]
+        date:
+          type: string
+          format: date-time
+        duration:
+          type: integer
+          nullable: true
+        notes:
+          type: string
+        productsDiscussed:
+          type: array
+          items:
+            type: string
+          default: []
+        followUpRequired:
+          type: boolean
+          default: false
+        followUpDate:
+          type: string
+          format: date-time
+          nullable: true
+        followUpNotes:
+          type: string
+          nullable: true
+      required:
+        - hcpId
+        - type
+        - date
+        - notes
+
+    InteractionUpdateInput:
+      type: object
+      properties:
+        type:
+          type: string
+          enum: [visit, call, email, virtual_meeting, conference, other]
+        date:
+          type: string
+          format: date-time
+        duration:
+          type: integer
+          nullable: true
+        notes:
+          type: string
+        productsDiscussed:
+          type: array
+          items:
+            type: string
+        followUpRequired:
+          type: boolean
+        followUpDate:
+          type: string
+          format: date-time
+          nullable: true
+        followUpNotes:
+          type: string
+          nullable: true
+
+    InteractionListResponse:
+      type: object
+      properties:
+        interactions:
+          type: array
+          items:
+            $ref: "#/components/schemas/Interaction"
+        total:
+          type: integer
+        limit:
+          type: integer
+        offset:
+          type: integer
+      required:
+        - interactions
+        - total
+        - limit
+        - offset
+
+    DashboardSummary:
+      type: object
+      properties:
+        totalHcps:
+          type: integer
+        totalInteractions:
+          type: integer
+        interactionsThisMonth:
+          type: integer
+        interactionsThisWeek:
+          type: integer
+        pendingFollowUps:
+          type: integer
+        byType:
+          type: array
+          items:
+            type: object
+            properties:
+              type:
+                type: string
+              count:
+                type: integer
+            required:
+              - type
+              - count
+        bySpecialty:
+          type: array
+          items:
+            type: object
+            properties:
+              specialty:
+                type: string
+              count:
+                type: integer
+            required:
+              - specialty
+              - count
+        recentInteractions:
+          type: array
+          items:
+            $ref: "#/components/schemas/Interaction"
+      required:
+        - totalHcps
+        - totalInteractions
+        - interactionsThisMonth
+        - interactionsThisWeek
+        - pendingFollowUps
+        - byType
+        - bySpecialty
+        - recentInteractions
+
+    AgentRequest:
+      type: object
+      properties:
+        message:
+          type: string
+        sessionId:
+          type: string
+          nullable: true
+        hcpId:
+          type: integer
+          nullable: true
+        interactionId:
+          type: integer
+          nullable: true
+      required:
+        - message
+
+    AgentResponse:
+      type: object
+      properties:
+        response:
+          type: string
+        toolsUsed:
+          type: array
+          items:
+            type: string
+        extractedData:
+          type: object
+          nullable: true
+        sessionId:
+          type: string
+      required:
+        - response
+        - toolsUsed
+        - sessionId
+
+    ChatMessage:
+      type: object
+      properties:
+        role:
+          type: string
+          enum: [user, assistant]
+        content:
+          type: string
+      required:
+        - role
+        - content
+
+    ChatRequest:
+      type: object
+      properties:
+        messages:
+          type: array
+          items:
+            $ref: "#/components/schemas/ChatMessage"
+        hcpId:
+          type: integer
+          nullable: true
+        sessionId:
+          type: string
+          nullable: true
+      required:
+        - messages
+
+    ChatResponse:
+      type: object
+      properties:
+        message:
+          type: string
+        extractedInteraction:
+          $ref: "#/components/schemas/InteractionCreateInput"
+          nullable: true
+        sessionId:
+          type: string
+        toolsUsed:
+          type: array
+          items:
+            type: string
+        readyToLog:
+          type: boolean
+      required:
+        - message
+        - sessionId
+        - toolsUsed
+        - readyToLog
