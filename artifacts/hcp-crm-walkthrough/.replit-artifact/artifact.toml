@@ -1,0 +1,31 @@
+kind = "video"
+previewPath = "/hcp-crm-walkthrough/"
+title = "HCP CRM – Video Walkthrough"
+version = "1.0.0"
+id = "artifacts/hcp-crm-walkthrough"
+router = "path"
+
+[[integratedSkills]]
+name = "video-js"
+version = "1.0.0"
+
+[[services]]
+name = "web"
+paths = [ "/hcp-crm-walkthrough/" ]
+localPort = 19425
+
+[services.development]
+run = "pnpm --filter @workspace/hcp-crm-walkthrough run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/hcp-crm-walkthrough", "run", "build" ]
+publicDir = "artifacts/hcp-crm-walkthrough/dist/public"
+serve = "static"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "19425"
+BASE_PATH = "/hcp-crm-walkthrough/"
